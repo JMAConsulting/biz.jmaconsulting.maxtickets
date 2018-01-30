@@ -162,7 +162,7 @@ function maxtickets_civicrm_validateForm($formName, &$fields, &$files, &$form, &
     $currentCount = getCurrentCount($validPrices);
     CRM_Core_Session::singleton()->set('ticketCount', $currentCount);
     if ($currentCount > MAX_ALLOWED) {
-      $errors['email-Primary'] = ts("Sorry, the tickets for this type are currently sold out.");
+      $errors['email-Primary'] = ts("Sorry, the tickets for Adult/Child Preferences are currently sold out.");
     }
   }
   if ($formName == "CRM_Event_Form_Registration_AdditionalParticipant" && $form->_eventId == EVENT_ID) {
@@ -179,7 +179,7 @@ function maxtickets_civicrm_validateForm($formName, &$fields, &$files, &$form, &
       }
     }
     if ($count > MAX_ALLOWED) {
-      $errors['email-Primary'] = ts("Sorry, the tickets for this type are currently sold out.");
+      $errors['email-Primary'] = ts("Sorry, the tickets for Adult/Child Preferences are currently sold out.");
     }
   }
 }
