@@ -1,5 +1,4 @@
 <?php
-define('EVENT_ID', 1);
 define('PRICESET_ID', 38);
 define('MAX_ALLOWED', 80);
 define('ADULT_PREF', 171);
@@ -167,7 +166,7 @@ function maxtickets_civicrm_validateForm($formName, &$fields, &$files, &$form, &
         $priceCount = $form->_values['fee'][ADULT_PREF]['options'][$fields['price_' . ADULT_PREF]]['count'];
       }
       if (!empty($fields['price_' . CHILD_PREF])) {
-        $priceCount = $form->_values['fee'][CHILD_PREF]['options'][$fields['price_' . CHILD_PREF]]['count'];
+        $priceCount = $priceCount + $form->_values['fee'][CHILD_PREF]['options'][$fields['price_' . CHILD_PREF]]['count'];
       }
     }
     $prices = getPrices($validPrices);
@@ -195,7 +194,7 @@ function maxtickets_civicrm_validateForm($formName, &$fields, &$files, &$form, &
         $priceCount = $form->_values['fee'][ADULT_PREF]['options'][$fields['price_' . ADULT_PREF]]['count'];
       }
       if (!empty($fields['price_' . CHILD_PREF])) {
-        $priceCount = $form->_values['fee'][CHILD_PREF]['options'][$fields['price_' . CHILD_PREF]]['count'];
+        $priceCount = $priceCount + $form->_values['fee'][CHILD_PREF]['options'][$fields['price_' . CHILD_PREF]]['count'];
       }
     }
     $prices = getPrices($validPrices);
@@ -234,7 +233,7 @@ function maxtickets_civicrm_postProcess($formName, &$form) {
         $priceCount = $form->_values['fee'][ADULT_PREF]['options'][$fields['price_' . ADULT_PREF]]['count'];
       }
       if (!empty($form->_submitValues['price_' . CHILD_PREF])) {
-        $priceCount = $form->_values['fee'][CHILD_PREF]['options'][$fields['price_' . CHILD_PREF]]['count'];
+        $priceCount = $priceCount + $form->_values['fee'][CHILD_PREF]['options'][$fields['price_' . CHILD_PREF]]['count'];
       }
     }
     $prices = getPrices($validPrices);
