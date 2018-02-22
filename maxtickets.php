@@ -1,9 +1,9 @@
 <?php
 define('EVENT_ID', 1);
-define('PRICESET_ID', 10);
+define('PRICESET_ID', 38);
 define('MAX_ALLOWED', 80);
-define('ADULT_PREF', 13);
-define('CHILD_PREF', 14);
+define('ADULT_PREF', 171);
+define('CHILD_PREF', 172);
 
 require_once 'maxtickets.civix.php';
 
@@ -112,7 +112,7 @@ function maxtickets_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
   _maxtickets_civix_civicrm_alterSettingsFolders($metaDataFolders);
 }
 
-function getCurrentCount($priceFields) {
+function getCurrentCount($priceFields, $eventId) {
   $sql = "SELECT SUM(participant_count)
     FROM civicrm_event e
     INNER JOIN civicrm_participant p ON p.event_id = e.id
@@ -123,7 +123,7 @@ function getCurrentCount($priceFields) {
     AND p.status_id IN (1)";
   $params = array(
     1 => array(implode(',', $priceFields), 'Text'),
-    2 => array(EVENT_ID, 'Int'),
+    2 => array($eventId, 'Int'),
   );
   return CRM_Core_DAO::singleValueQuery($sql, $params);
 }
@@ -153,32 +153,37 @@ function getPrices($toCheck) {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_validateForm
  */
 function maxtickets_civicrm_validateForm($formName, &$fields, &$files, &$form, &$errors) {
-  if ($formName == "CRM_Event_Form_Registration_Register" && $form->_eventId == EVENT_ID) {
+  if ($formName == "CRM_Event_Form_Registration_Register" && in_array($form->_eventId, array(41, 42, 44))) {
     $validPrices = array(
       'price_' . ADULT_PREF => ADULT_PREF,
       'price_' . CHILD_PREF => CHILD_PREF,
     );
+    if (empty($fields['price_' . ADULT_PREF]) && empty($fields['price_' . CHILD_PREF])) {
+      return;
+    }
     $prices = getPrices($validPrices);
-    $currentCount = getCurrentCount($validPrices);
+    $currentCount = getCurrentCount($validPrices, $form->_eventId);
     CRM_Core_Session::singleton()->set('ticketCount', $currentCount);
-    if ($currentCount > MAX_ALLOWED) {
+    if ($currentCount >= MAX_ALLOWED) {
       $errors['email-Primary'] = ts("Sorry, the tickets for Adult/Child Preferences are currently sold out.");
     }
   }
-  if ($formName == "CRM_Event_Form_Registration_AdditionalParticipant" && $form->_eventId == EVENT_ID) {
+  if ($formName == "CRM_Event_Form_Registration_AdditionalParticipant" && in_array($form->_eventId, array(41, 42, 44))) {
     $count = CRM_Core_Session::singleton()->get('ticketCount');
-    CRM_Core_Error::debug( '$count', $count );
     $validPrices = array(
       'price_' . ADULT_PREF => ADULT_PREF,
       'price_' . CHILD_PREF => CHILD_PREF,
     );
+    if (empty($fields['price_' . ADULT_PREF]) && empty($fields['price_' . CHILD_PREF])) {
+      return;
+    }
     $prices = getPrices($validPrices);
     foreach ($fields as $field => $fieldValue) {
       if (array_key_exists($field, $validPrices) && !empty($fields[$field])) {
         $count += $prices[$validPrices[$field]][$fieldValue];
       }
     }
-    if ($count > MAX_ALLOWED) {
+    if ($count >= MAX_ALLOWED) {
       $errors['email-Primary'] = ts("Sorry, the tickets for Adult/Child Preferences are currently sold out.");
     }
   }
@@ -191,11 +196,14 @@ function maxtickets_civicrm_validateForm($formName, &$fields, &$files, &$form, &
  */
 function maxtickets_civicrm_postProcess($formName, &$form) {
   if (in_array($formName, array("CRM_Event_Form_Registration_Register", "CRM_Event_Form_Registration_AdditionalParticipant"))
-    && $form->_eventId == EVENT_ID) {
+    && in_array($form->_eventId, array(41, 42, 44))) {
     $validPrices = array(
       'price_' . ADULT_PREF => ADULT_PREF,
       'price_' . CHILD_PREF => CHILD_PREF,
     );
+    if (empty($form->_submitValues['price_' . ADULT_PREF]) && empty($form->_submitValues['price_' . CHILD_PREF])) {
+      return;
+    }
     $prices = getPrices($validPrices);
     $count = CRM_Core_Session::singleton()->get('ticketCount');
     foreach ($form->_submitValues as $field => $fieldValue) {
