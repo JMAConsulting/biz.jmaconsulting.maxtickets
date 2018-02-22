@@ -158,11 +158,23 @@ function maxtickets_civicrm_validateForm($formName, &$fields, &$files, &$form, &
       'price_' . ADULT_PREF => ADULT_PREF,
       'price_' . CHILD_PREF => CHILD_PREF,
     );
+    $priceCount = 0;
     if (empty($fields['price_' . ADULT_PREF]) && empty($fields['price_' . CHILD_PREF])) {
       return;
     }
+    else {
+      if (!empty($fields['price_' . ADULT_PREF])) {
+        $priceCount = $form->_values['fee'][ADULT_PREF]['options'][$fields['price_' . ADULT_PREF]]['count'];
+      }
+      if (!empty($fields['price_' . CHILD_PREF])) {
+        $priceCount = $form->_values['fee'][CHILD_PREF]['options'][$fields['price_' . CHILD_PREF]]['count'];
+      }
+    }
     $prices = getPrices($validPrices);
     $currentCount = getCurrentCount($validPrices, $form->_eventId);
+    if ($priceCount) {
+      $currentCount = $currentCount + $priceCount;
+    }
     CRM_Core_Session::singleton()->set('ticketCount', $currentCount);
     if ($currentCount >= MAX_ALLOWED) {
       $errors['email-Primary'] = ts("Sorry, the tickets for Adult/Child Preferences are currently sold out.");
@@ -174,14 +186,26 @@ function maxtickets_civicrm_validateForm($formName, &$fields, &$files, &$form, &
       'price_' . ADULT_PREF => ADULT_PREF,
       'price_' . CHILD_PREF => CHILD_PREF,
     );
+    $priceCount = 0;
     if (empty($fields['price_' . ADULT_PREF]) && empty($fields['price_' . CHILD_PREF])) {
       return;
+    }
+    else {
+      if (!empty($fields['price_' . ADULT_PREF])) {
+        $priceCount = $form->_values['fee'][ADULT_PREF]['options'][$fields['price_' . ADULT_PREF]]['count'];
+      }
+      if (!empty($fields['price_' . CHILD_PREF])) {
+        $priceCount = $form->_values['fee'][CHILD_PREF]['options'][$fields['price_' . CHILD_PREF]]['count'];
+      }
     }
     $prices = getPrices($validPrices);
     foreach ($fields as $field => $fieldValue) {
       if (array_key_exists($field, $validPrices) && !empty($fields[$field])) {
         $count += $prices[$validPrices[$field]][$fieldValue];
       }
+    }
+    if ($priceCount) {
+      $count = $count + $priceCount;
     }
     if ($count >= MAX_ALLOWED) {
       $errors['email-Primary'] = ts("Sorry, the tickets for Adult/Child Preferences are currently sold out.");
@@ -201,8 +225,17 @@ function maxtickets_civicrm_postProcess($formName, &$form) {
       'price_' . ADULT_PREF => ADULT_PREF,
       'price_' . CHILD_PREF => CHILD_PREF,
     );
+    $priceCount = 0;
     if (empty($form->_submitValues['price_' . ADULT_PREF]) && empty($form->_submitValues['price_' . CHILD_PREF])) {
       return;
+    }
+    else {
+      if (!empty($form->_submitValues['price_' . ADULT_PREF])) {
+        $priceCount = $form->_values['fee'][ADULT_PREF]['options'][$fields['price_' . ADULT_PREF]]['count'];
+      }
+      if (!empty($form->_submitValues['price_' . CHILD_PREF])) {
+        $priceCount = $form->_values['fee'][CHILD_PREF]['options'][$fields['price_' . CHILD_PREF]]['count'];
+      }
     }
     $prices = getPrices($validPrices);
     $count = CRM_Core_Session::singleton()->get('ticketCount');
@@ -210,6 +243,9 @@ function maxtickets_civicrm_postProcess($formName, &$form) {
       if (array_key_exists($field, $validPrices) && !empty($form->_submitValues[$field])) {
         $count += $prices[$validPrices[$field]][$fieldValue];
       }
+    }
+    if ($priceCount) {
+      $count = $count + $priceCount;
     }
     CRM_Core_Session::singleton()->set('ticketCount', $count);
   }
